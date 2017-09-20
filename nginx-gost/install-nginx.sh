@@ -25,6 +25,7 @@ cat /etc/*release* | grep -Ei "(centos|red hat)"
 if [ "$?" -eq 0 ] 
 then
     apt="yum"
+    pkgmsys="rpm"
     pkglist="rpm -qa"
     install="rpm -i"
     openssl_packages=(cprocsp-cpopenssl-110-64_4.0.0-5_amd64.rpm \
@@ -40,6 +41,7 @@ else
     if [ "$?" -eq 0 ] 
     then
         apt="apt-get"
+        pkgmsys="deb"
         pkglist="dpkg-query --list"
         install="dpkg -i"
         openssl_packages=(cprocsp-cpopenssl-110-64_4.0.0-5_amd64.deb \
@@ -102,7 +104,7 @@ wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/ngi
 wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz || exit 1
 for i in ${openssl_packages[@]}; do wget ${url}/bin/"${revision_openssl}"/$i || exit 1; done 
 tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
-cmd=$install" lsb-cprocsp-kc2*"
+cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
 
 cd ${csp%.tgz} && ./install.sh && eval "$cmd" && cd .. || exit 1
 cd ${pcre_ver} && ./configure && make && make install && cd .. || exit 1
