@@ -117,10 +117,11 @@ done
 # Установка nginx
 # ----------------------------------
 
-git clone https://github.com/nginx/nginx.git || exit 1
-cd nginx
+git clone https://github.com/nginx/nginx.git
+cd nginx || exit 1
 git checkout branches/$nginx_branch || exit 1
-cd .. && git apply nginx_conf.patch && cd nginx
+cd .. && git apply nginx_conf.patch || exit 1
+cd nginx
 cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
 eval $cmd && make && make install || exit 1
 
