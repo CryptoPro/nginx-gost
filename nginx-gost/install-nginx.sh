@@ -98,7 +98,7 @@ then
     eval "$apt install git" || exit 1
 fi
 
-wget "https://gist.githubusercontent.com/fullincome/0057db0756cf44ef51fc90f68744a6be/raw/3b421f1c3852d49bf04b2eb00200dac6a579857f/nginx_conf.patch" || exit 1
+wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" || exit 1
 wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz || exit 1
 for i in ${openssl_packages[@]}; do wget ${url}/bin/"${revision_openssl}"/$i || exit 1; done 
 tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
@@ -111,7 +111,7 @@ for i in ${openssl_packages[@]}; do
     cmd=$install" "$i
     eval "$cmd" || exit 1
 done
-    
+
 # ----------------------------------
 
 # Установка nginx

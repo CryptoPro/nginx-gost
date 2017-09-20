@@ -17,7 +17,7 @@ openssl req -x509 -newkey rsa:2048 -keyout /etc/nginx/srvtestRSA.key -nodes -out
 openssl rsa -in /etc/nginx/srvtestRSA.key -out /etc/nginx/srvtestRSA.key
 
 # Загрузка файла конфигурации:
-wget "https://gist.githubusercontent.com/fullincome/84cfb2cca759fd468b8f6d08ebccff79/raw/a7f78c1d9ca9787a79b51069db5daa25a6246815/nginx.conf" || exit 1
+wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx.conf" || exit 1
 
 # Установка конфигурации nginx:
 mv ./nginx.conf /etc/nginx/nginx.conf || exit 1

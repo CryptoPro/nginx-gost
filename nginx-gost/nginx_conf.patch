@@ -1,13 +1,11 @@
 diff --git a/nginx/auto/lib/openssl/conf b/nginx/auto/lib/openssl/conf
-index e7d3795..2834e13 100644
+index e7d3795..67ed73c 100644
 --- a/nginx/auto/lib/openssl/conf
 +++ b/nginx/auto/lib/openssl/conf
-@@ -111,6 +111,22 @@ else
-             . auto/feature
-         fi
+@@ -65,6 +65,22 @@ else
+
+         if [ $ngx_found = no ]; then
  
-+        if [ $ngx_found = no ]; then
-+
 +            # CryptoPro port
 +
 +            ngx_feature="OpenSSL library in /opt/cprocsp/cp-openssl-1.1.0/"
@@ -22,6 +20,8 @@ index e7d3795..2834e13 100644
 +            . auto/feature
 +        fi
 +
-         if [ $ngx_found = yes ]; then
-             have=NGX_SSL . auto/have
-             CORE_INCS="$CORE_INCS $ngx_feature_path"
++        if [ $ngx_found = no ]; then
++
+             # FreeBSD port
+ 
+             ngx_feature="OpenSSL library in /usr/local/"
