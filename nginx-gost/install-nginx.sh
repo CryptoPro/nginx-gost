@@ -37,7 +37,7 @@ then
     cc_ld_opt=" --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -fPIC' --with-ld-opt='-Wl,-z,relro -Wl,-z,now -pie'" 
 
 else
-    cat /etc/*release* | grep -Ei "(ubuntu)"
+    cat /etc/*release* | grep -Ei "(ubuntu|debian)"
     if [ "$?" -eq 0 ] 
     then
         apt="apt-get"
