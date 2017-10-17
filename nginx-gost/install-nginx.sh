@@ -6,7 +6,7 @@
 # Пакеты будут скачены с "$url"
 url="https://update.cryptopro.ru/support/nginx-gost"
 
-revision_openssl="161714"
+revision_openssl="164682"
 pcre_ver="pcre-8.41"
 zlib_ver="zlib-1.2.11"
 
