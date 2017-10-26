@@ -12,9 +12,14 @@ zlib_ver="zlib-1.2.11"
 
 # Версия nginx для загрузки с github
 nginx_branch="stable-1.12"
+no_exec=false
 
 if [ -n "$1" ] 
-then    
+then
+    if [ "$1" == "command_list" ]
+    then
+        no_exec=true
+    fi
     csp=$1
 else
     printf "No argument (CSP)"
@@ -93,43 +98,82 @@ nginx_parametrs=" --user=${user} --group=${group} --user=nginx --group=nginx --w
 
 # Загрузка, распаковка и установка пакетов
 # ----------------------------------
-
-eval "$pkglist | grep \" git \""
-if ! [ "$?" -eq 0 ]
+if [ $no_exec == true ]
 then
-    eval "$apt install git" || exit 1
-fi
-
-wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" || exit 1
-wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz || exit 1
-for i in ${openssl_packages[@]}; do wget ${url}/bin/"${revision_openssl}"/$i || exit 1; done 
-tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
-cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
-
-cd ${csp%.tgz} && ./install.sh && eval "$cmd" && cd .. || exit 1
-cd ${pcre_ver} && ./configure && make && make install && cd .. || exit 1
-cd ${zlib_ver} && ./configure && make && make install && cd .. || exit 1
-for i in ${openssl_packages[@]}; do 
-    cmd=$install" "$i
-    eval "$cmd" || exit 1
-done
-
+# Вывод комманд
 # ----------------------------------
+    echo "This commands will be carry out:" > command_list.txt
+    eval "$pkglist | grep \" git \""
+    if ! [ "$?" -eq 0 ]
+    then
+        echo "$apt install git" >> command_list.txt
+    fi
 
-# Установка nginx
+    echo "wget https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" >> command_list.txt
+    echo "wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz" >> command_list.txt
+    for i in ${openssl_packages[@]}; do echo "wget ${url}/bin/${revision_openssl}/$i" >> command_list.txt; done
+    echo "tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz" >> command_list.txt
+    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
+
+    echo "cd ${csp%.tgz} && ./install.sh && eval $cmd && cd .." >> command_list.txt
+    echo "cd ${pcre_ver} && ./configure && make && make install && cd .." >> command_list.txt
+    echo "cd ${zlib_ver} && ./configure && make && make install && cd .." >> command_list.txt
+    for i in ${openssl_packages[@]}; do
+        cmd=$install" "$i
+        echo "$cmd" >> command_list.txt
+    done
+
+    echo "git clone https://github.com/nginx/nginx.git" >> command_list.txt
+    echo "cd nginx" >> command_list.txt
+    echo "git checkout branches/$nginx_branch" >> command_list.txt
+    echo "cd .. && git apply nginx_conf.patch" >> command_list.txt
+    echo "cd nginx" >> command_list.txt
+    cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
+    echo "$cmd && make && make install" >> command_list.txt
+    if ! [ -d /var/cache/nginx ]
+    then
+        echo "mkdir /var/cache/nginx" >> command_list.txt
+    fi
+
+else
 # ----------------------------------
+    eval "$pkglist | grep \" git \""
+    if ! [ "$?" -eq 0 ]
+    then
+        eval "$apt install git" || exit 1
+    fi
 
-git clone https://github.com/nginx/nginx.git
-cd nginx || exit 1
-git checkout branches/$nginx_branch || exit 1
-cd .. && git apply nginx_conf.patch || exit 1
-cd nginx
-cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
-eval $cmd && make && make install || exit 1
+    wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" || exit 1
+    wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz || exit 1
+    for i in ${openssl_packages[@]}; do wget ${url}/bin/"${revision_openssl}"/$i || exit 1; done
+    tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
+    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
 
-if ! [ -d /var/cache/nginx ]
-then 
-    mkdir /var/cache/nginx
+    cd ${csp%.tgz} && ./install.sh && eval "$cmd" && cd .. || exit 1
+    cd ${pcre_ver} && ./configure && make && make install && cd .. || exit 1
+    cd ${zlib_ver} && ./configure && make && make install && cd .. || exit 1
+    for i in ${openssl_packages[@]}; do
+        cmd=$install" "$i
+        eval "$cmd" || exit 1
+    done
+
+    # ----------------------------------
+
+    # Установка nginx
+    # ----------------------------------
+
+    git clone https://github.com/nginx/nginx.git
+    cd nginx || exit 1
+    git checkout branches/$nginx_branch || exit 1
+    cd .. && git apply nginx_conf.patch || exit 1
+    cd nginx
+    cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
+    eval $cmd && make && make install || exit 1
+
+    if ! [ -d /var/cache/nginx ]
+    then
+        mkdir /var/cache/nginx
+    fi
 fi
 
 # ----------------------------------
