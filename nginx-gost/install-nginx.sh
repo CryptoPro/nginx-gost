@@ -33,10 +33,10 @@ then
     pkgmsys="rpm"
     pkglist="rpm -qa"
     install="rpm -i"
-    openssl_packages=(cprocsp-cpopenssl-110-64_4.0.0-5_amd64.rpm \
-    cprocsp-cpopenssl-110-base_4.0.0-5_all.rpm \
-    cprocsp-cpopenssl-110-devel_4.0.0-5_all.rpm \
-    cprocsp-cpopenssl-110-gost-64_4.0.0-5_amd64.rpm)
+    openssl_packages=(cprocsp-cpopenssl-110-base_4.0.0-5.noarch.rpm \
+    cprocsp-cpopenssl-110-64_4.0.0-5.x86_64.rpm \
+    cprocsp-cpopenssl-110-devel_4.0.0-5.noarch.rpm \
+    cprocsp-cpopenssl-110-gost-64_4.0.0-5.x86_64.rpm)
 
     modules_path=/usr/lib64/nginx/modules
     cc_ld_opt=" --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -fPIC' --with-ld-opt='-Wl,-z,relro -Wl,-z,now -pie'" 
@@ -49,8 +49,8 @@ else
         pkgmsys="deb"
         pkglist="dpkg-query --list"
         install="dpkg -i"
-        openssl_packages=(cprocsp-cpopenssl-110-64_4.0.0-5_amd64.deb \
-        cprocsp-cpopenssl-110-base_4.0.0-5_all.deb \
+        openssl_packages=(cprocsp-cpopenssl-110-base_4.0.0-5_all.deb \
+        cprocsp-cpopenssl-110-64_4.0.0-5_amd64.deb \
         cprocsp-cpopenssl-110-devel_4.0.0-5_all.deb \
         cprocsp-cpopenssl-110-gost-64_4.0.0-5_amd64.deb)
 
