@@ -29,7 +29,7 @@ fi
 cat /etc/*release* | grep -Ei "(centos|red hat)"
 if [ "$?" -eq 0 ] 
 then
-    apt="yum"
+    apt="yum -y"
     pkgmsys="rpm"
     pkglist="rpm -qa"
     install="rpm -i"
@@ -102,41 +102,54 @@ if [ $no_exec == true ]
 then
 # Вывод комманд
 # ----------------------------------
-    echo "This commands will be carry out:" > command_list.txt
+    echo "This commands will be carry out:" > command_list
+
+    eval "$pkglist | grep -qw gcc"
+    if ! [ "$?" -eq 0 ]
+    then
+        echo "$apt install gcc" >> command_list
+    fi
+
     eval "$pkglist | grep \" git \""
     if ! [ "$?" -eq 0 ]
     then
-        echo "$apt install git" >> command_list.txt
+        echo "$apt install git" >> command_list
     fi
 
-    echo "wget https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" >> command_list.txt
-    echo "wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz" >> command_list.txt
-    for i in ${openssl_packages[@]}; do echo "wget ${url}/bin/${revision_openssl}/$i" >> command_list.txt; done
-    echo "tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz" >> command_list.txt
+    echo "wget https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" >> command_list
+    echo "wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz" >> command_list
+    for i in ${openssl_packages[@]}; do echo "wget ${url}/bin/${revision_openssl}/$i" >> command_list; done
+    echo "tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz" >> command_list
     cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
 
-    echo "cd ${csp%.tgz} && ./install.sh && eval $cmd && cd .." >> command_list.txt
-    echo "cd ${pcre_ver} && ./configure && make && make install && cd .." >> command_list.txt
-    echo "cd ${zlib_ver} && ./configure && make && make install && cd .." >> command_list.txt
+    echo "cd ${csp%.tgz} && ./install.sh && eval $cmd && cd .." >> command_list
+    echo "cd ${pcre_ver} && ./configure && make && make install && cd .." >> command_list
+    echo "cd ${zlib_ver} && ./configure && make && make install && cd .." >> command_list
     for i in ${openssl_packages[@]}; do
         cmd=$install" "$i
-        echo "$cmd" >> command_list.txt
+        echo "$cmd" >> command_list
     done
 
-    echo "git clone https://github.com/nginx/nginx.git" >> command_list.txt
-    echo "cd nginx" >> command_list.txt
-    echo "git checkout branches/$nginx_branch" >> command_list.txt
-    echo "cd .. && git apply nginx_conf.patch" >> command_list.txt
-    echo "cd nginx" >> command_list.txt
+    echo "git clone https://github.com/nginx/nginx.git" >> command_list
+    echo "cd nginx" >> command_list
+    echo "git checkout branches/$nginx_branch" >> command_list
+    echo "cd .. && git apply nginx_conf.patch" >> command_list
+    echo "cd nginx" >> command_list
     cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
-    echo "$cmd && make && make install" >> command_list.txt
+    echo "$cmd && make && make install" >> command_list
     if ! [ -d /var/cache/nginx ]
     then
-        echo "mkdir /var/cache/nginx" >> command_list.txt
+        echo "mkdir /var/cache/nginx" >> command_list
     fi
 
 else
 # ----------------------------------
+    eval "$pkglist | grep -qw gcc"
+    if ! [ "$?" -eq 0 ]
+    then
+        eval "$apt install gcc" || exit 1
+    fi
+
     eval "$pkglist | grep \" git \""
     if ! [ "$?" -eq 0 ]
     then
