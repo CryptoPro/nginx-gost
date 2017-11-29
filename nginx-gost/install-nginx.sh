@@ -109,20 +109,29 @@ then
     then
         echo "$apt install gcc" >> command_list
     fi
-
     eval "$pkglist | grep \" git \""
     if ! [ "$?" -eq 0 ]
     then
         echo "$apt install git" >> command_list
     fi
 
-    echo "wget https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" >> command_list
-    echo "wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz" >> command_list
-    for i in ${openssl_packages[@]}; do echo "wget ${url}/bin/${revision_openssl}/$i" >> command_list; done
-    echo "tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz" >> command_list
-    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
+    echo "wget --no-check-certificate -O nginx_conf.patch https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" >> command_list
+    echo "wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz && wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz" >> command_list
+    for i in ${openssl_packages[@]}; do echo "wget --no-check-certificate -O $i ${url}/bin/${revision_openssl}/$i" >> command_list; done
 
-    echo "cd ${csp%.tgz} && ./install.sh && eval $cmd && cd .." >> command_list
+    echo "tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz" >> command_list
+    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
+    if ! [ -d "$csp" ]
+    then
+        if ! [ -d csp ]
+        then
+            echo "mkdir csp" >> command_list
+        fi
+        echo "tar -xzvf $csp -C csp --strip-components 1" >> command_list
+        csp="csp"
+    fi
+
+    echo "cd ${csp} && ./install.sh && eval $cmd && cd .." >> command_list
     echo "cd ${pcre_ver} && ./configure && make && make install && cd .." >> command_list
     echo "cd ${zlib_ver} && ./configure && make && make install && cd .." >> command_list
     for i in ${openssl_packages[@]}; do
@@ -149,20 +158,29 @@ else
     then
         eval "$apt install gcc" || exit 1
     fi
-
     eval "$pkglist | grep \" git \""
     if ! [ "$?" -eq 0 ]
     then
         eval "$apt install git" || exit 1
     fi
 
-    wget "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" || exit 1
-    wget ${url}/src/${pcre_ver}.tar.gz && wget ${url}/src/${zlib_ver}.tar.gz || exit 1
-    for i in ${openssl_packages[@]}; do wget ${url}/bin/"${revision_openssl}"/$i || exit 1; done
-    tar -xzvf $csp && tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
-    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
+    wget --no-check-certificate -O nginx_conf.patch https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch || exit 1
+    wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz && wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz || exit 1
 
-    cd ${csp%.tgz} && ./install.sh && eval "$cmd" && cd .. || exit 1
+    for i in ${openssl_packages[@]}; do wget --no-check-certificate -O $i ${url}/bin/"${revision_openssl}"/$i || exit 1; done
+    tar -xzvf ${pcre_ver}.tar.gz && tar -xzvf ${zlib_ver}.tar.gz || exit 1
+    if ! [ -d "$csp" ]
+    then
+        if ! [ -d csp ]
+        then
+            mkdir csp
+        fi
+        tar -xzvf $csp -C csp --strip-components 1 || exit 1
+        csp="csp"
+    fi
+
+    cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
+    cd ${csp} && ./install.sh && eval "$cmd" && cd .. || exit 1
     cd ${pcre_ver} && ./configure && make && make install && cd .. || exit 1
     cd ${zlib_ver} && ./configure && make && make install && cd .. || exit 1
     for i in ${openssl_packages[@]}; do
