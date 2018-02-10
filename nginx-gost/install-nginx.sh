@@ -118,7 +118,7 @@ do
         command_list=true
     fi
     # Проверка force install
-    if echo ${arg_cur}|grep "\-\-force\-install" > /dev/null
+    if echo ${arg_cur}|grep "\-\-force_install" > /dev/null
     then
         openssl_need=true
         nginx_need=true
@@ -315,7 +315,7 @@ then
     eval "wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz" || exit 1
 fi
 
-if ! [ -e "${pcre_ver}.tar.gz" ]
+if ! [ -e "${zlib_ver}.tar.gz" ]
 then
     eval "wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz" || exit 1
 fi
@@ -335,7 +335,7 @@ fi
 
 if ! [ -d "$zlib_ver" ]
 then
-eval "tar -xzvf ${zlib_ver}.tar.gz" || exit 1
+    eval "tar -xzvf ${zlib_ver}.tar.gz" || exit 1
 fi
 
 if (! test -d "$csp" && test "$csp_need" == "true")
@@ -389,8 +389,7 @@ fi
 if [ ${zlib_need} == true ];
 then
     echo "Install ZLIB" 
-    cd ${zlib_ver} && ./configure > zlib.log && make > zlib.log && make install > zlib.log && cd ${WORK_PATH} || exit 1
-    eval "rm zlib.log"
+    cd ${zlib_ver} && ./configure && make && make install && cd ${WORK_PATH} || exit 1
 fi
 
 if [ ${openssl_need} == true ];
@@ -398,9 +397,8 @@ then
     echo "Install Openssl-1.1.0"
     for openssl_pkg in ${openssl_packages[@]}; do
         cmd=$install" "$openssl_pkg
-        eval "$cmd > openssl.log" || exit 1
+        eval "$cmd" || exit 1
     done
-    "rm openssl.log"
 fi
 
 # ----------------------------------
