@@ -407,7 +407,8 @@ fi
 if [ ${nginx_need} == true ];
 then
     echo "Apply patch"
-    cd ${WORK_PATH} && git apply nginx_conf.patch && cd nginx || exit 1
+    cd ${WORK_PATH} && cp nginx_conf.patch ./nginx/nginx_conf.patch  || exit 1
+    cd nginx && git apply nginx_conf.patch || exit 1
     
     cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
     echo "Nginx: configure and install"

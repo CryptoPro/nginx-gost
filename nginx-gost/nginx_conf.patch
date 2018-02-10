@@ -1,7 +1,6 @@
-diff --git a/nginx/auto/lib/openssl/conf b/nginx/auto/lib/openssl/conf
-index e7d3795..67ed73c 100644
---- a/nginx/auto/lib/openssl/conf
-+++ b/nginx/auto/lib/openssl/conf
+diff --git a/auto/lib/openssl/conf b/nginx/auto/lib/openssl/conf
+--- a/auto/lib/openssl/conf
++++ b/auto/lib/openssl/conf
 @@ -65,6 +65,22 @@ else
 
          if [ $ngx_found = no ]; then

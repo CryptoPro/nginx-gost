@@ -1,3 +1,11 @@
+## Usage
+Самый простой путь для инсталяции nginx:
+```
+sudo ./install-nginx.sh --csp=/path_to_csp_dir/or/path_to_csp_tgz/
+sudo ./install-certs.sh
+```
+
+## Scripts
 ### install-nginx.sh
 Установливает **nginx** для работы с **gost** сертификатами. Если на системе нет каких-либо пакетов (openssl-1.1.0, csp, zlib и пр.), будет произведена их инсталяция.
 
@@ -15,7 +23,7 @@ sudo ./install
 sudo dpkg -i lsb-cprocsp-kc2-64_4.0.0-5_amd64.deb
 ```
 
-### nstall-certs.sh
+### install-certs.sh
  Генерация и установка **rsa** и **gost** сертификатов, настройка соответствующей конфигурации **nginx**.  Гостовый сертификат будет установлен в контейнер "ngxtest".
  
 - **\-\-certname=NAME**  
