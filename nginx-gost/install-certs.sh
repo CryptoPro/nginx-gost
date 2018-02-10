@@ -1,11 +1,20 @@
 #!/bin/bash -x
 
+ARGV=$@
 certname='srvtest'
 
-if [ -n "$1" ]
-then
-	certname=$1
-fi
+# Проверка аргументов
+for arg_cur in ${ARGV};
+do
+    term="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $1}'`"
+    define="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $2}'`"
+    case ${term} in
+        # Указание имени сертификата
+        "--certname")
+            certname=${define}
+            ;;
+    esac
+done
 
 /opt/cprocsp/bin/amd64/certmgr -list | grep 'HDIMAGE\\\\ngxtest'
 
@@ -27,8 +36,8 @@ fi
 openssl x509 -inform DER -in "/etc/nginx/${certname}.cer" -out "/etc/nginx/${certname}.pem" || exit 1
 
 # Генерация сертификатов RSA:
-openssl req -x509 -newkey rsa:2048 -keyout /etc/nginx/${certname}RSA.key -nodes -out /etc/nginx/srvtestRSA.pem -subj '/CN=${certname}RSA/C=RU' || exit 1
-openssl rsa -in /etc/nginx/srvtestRSA.key -out /etc/nginx/${certname}RSA.key
+openssl req -x509 -newkey rsa:2048 -keyout /etc/nginx/${certname}RSA.key -nodes -out /etc/nginx/${certname}RSA.pem -subj '/CN=${certname}RSA/C=RU' || exit 1
+openssl rsa -in /etc/nginx/${certname}RSA.key -out /etc/nginx/${certname}RSA.key
 
 # Загрузка файла конфигурации:
 wget --no-check-certificate "https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx.conf" || exit 1
