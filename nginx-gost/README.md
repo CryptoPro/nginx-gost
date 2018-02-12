@@ -28,3 +28,5 @@ sudo dpkg -i lsb-cprocsp-kc2-64_4.0.0-5_amd64.deb
  
 - **\-\-certname=NAME**  
 Выбор имени для сертификатов (по умолчанию "srvtest.pem" для GOST и "srvtestRSA.pem" для RSA).
+- **\-\-container=NAME**  
+Выбор контейнера для GOST сертификата (по умолчанию "ngxtest").
