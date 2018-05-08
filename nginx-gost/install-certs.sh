@@ -45,7 +45,7 @@ fi
 openssl x509 -inform DER -in "/etc/nginx/${certname}.cer" -out "/etc/nginx/${certname}.pem" || exit 1
 
 # Генерация сертификатов RSA:
-openssl req -x509 -newkey rsa:2048 -keyout /etc/nginx/${certname}RSA.key -nodes -out /etc/nginx/${certname}RSA.pem -subj '/CN=${certname}RSA/C=RU' || exit 1
+openssl req -x509 -newkey rsa:2048 -keyout /etc/nginx/${certname}RSA.key -nodes -out /etc/nginx/${certname}RSA.pem -subj "/CN=${certname}RSA/C=RU" || exit 1
 openssl rsa -in /etc/nginx/${certname}RSA.key -out /etc/nginx/${certname}RSA.key
 
 # Загрузка файла конфигурации:

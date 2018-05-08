@@ -130,7 +130,7 @@ then
     if (eval "${pkglist} | grep cprocsp-base > /dev/null" && \
         eval "${pkglist} | grep cprocsp-capilite > /dev/null" && \
         eval "${pkglist} | grep cprocsp-kc1 > /dev/null" &&
-        eval "${pkglist} | grep cprocsp-kc1 > /dev/null")
+        eval "${pkglist} | grep cprocsp-kc2 > /dev/null")
     then
         echo "CSP: found"
     else
