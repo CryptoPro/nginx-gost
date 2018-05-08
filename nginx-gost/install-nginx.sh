@@ -14,12 +14,13 @@ nginx_need=false
 # Пакеты будут скачены с "$url"
 url="https://update.cryptopro.ru/support/nginx-gost"
 
-revision_openssl="168667"
-pcre_ver="pcre-8.41"
+revision_openssl="174535"
+release_openssl="5.0.11099-5"
+pcre_ver="pcre-8.42"
 zlib_ver="zlib-1.2.11"
 
 # Версия nginx для загрузки с github
-nginx_branch="stable-1.12"
+nginx_branch="stable-1.14"
 
 # Определение команд под систему
 cat /etc/*release* | grep -Ei "(centos|red hat)" > /dev/null
@@ -29,10 +30,10 @@ then
     pkgmsys="rpm"
     pkglist="rpm -qa"
     install="rpm -i"
-    openssl_packages=(cprocsp-cpopenssl-110-base-5.0.10976-5.noarch.rpm \
-    cprocsp-cpopenssl-110-64-5.0.10976-5.x86_64.rpm \
-    cprocsp-cpopenssl-110-devel-5.0.10976-5.noarch.rpm \
-    cprocsp-cpopenssl-110-gost-64-5.0.10976-5.x86_64.rpm)
+    openssl_packages=(cprocsp-cpopenssl-110-base-${release_openssl}.noarch.rpm \
+    cprocsp-cpopenssl-110-64-${release_openssl}.x86_64.rpm \
+    cprocsp-cpopenssl-110-devel-${release_openssl}.noarch.rpm \
+    cprocsp-cpopenssl-110-gost-64-${release_openssl}.x86_64.rpm)
 
     modules_path=/usr/lib64/nginx/modules
     cc_ld_opt=" --with-cc-opt='-O2 -g -pipe -Wall -Wp,-D_FORTIFY_SOURCE=2 -fexceptions -fstack-protector --param=ssp-buffer-size=4 -m64 -mtune=generic -fPIC' --with-ld-opt='-Wl,-z,relro -Wl,-z,now -pie'" 
@@ -45,10 +46,10 @@ else
         pkgmsys="deb"
         pkglist="dpkg-query --list"
         install="dpkg -i"
-        openssl_packages=(cprocsp-cpopenssl-110-base_5.0.10976-5_all.deb \
-        cprocsp-cpopenssl-110-64_5.0.10976-5_amd64.deb \
-        cprocsp-cpopenssl-110-devel_5.0.10976-5_all.deb \
-        cprocsp-cpopenssl-110-gost-64_5.0.10976-5_amd64.deb)
+        openssl_packages=(cprocsp-cpopenssl-110-base_${release_openssl}_all.deb \
+        cprocsp-cpopenssl-110-64_${release_openssl}_amd64.deb \
+        cprocsp-cpopenssl-110-devel_${release_openssl}_all.deb \
+        cprocsp-cpopenssl-110-gost-64_${release_openssl}_amd64.deb)
 
         modules_path=/usr/lib/nginx/modules
         cc_ld_opt=" --with-cc-opt='-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2 -fPIC' --with-ld-opt='-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -pie'"
