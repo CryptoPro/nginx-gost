@@ -14,8 +14,8 @@ nginx_need=false
 # Пакеты будут скачены с "$url"
 url="https://update.cryptopro.ru/support/nginx-gost"
 
-revision_openssl="174535"
-release_openssl="5.0.11099-5"
+revision_openssl="180423"
+release_openssl="5.0.11216-5"
 pcre_ver="pcre-8.42"
 zlib_ver="zlib-1.2.11"
 
