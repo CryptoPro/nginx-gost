@@ -1,15 +1,7 @@
 #!/bin/bash +x
 
-ARGV=$@
+ARGV=($@)
 WORK_PATH=$(pwd)
-command_list=false
-csp_need=false
-openssl_need=false
-git_need=false
-gcc_need=false
-zlib_need=false
-pcre_need=false
-nginx_need=false
 
 # Пакеты будут скачены с "$url"
 url="https://update.cryptopro.ru/support/nginx-gost"
@@ -99,34 +91,131 @@ nginx_parametrs=" --user=${user} --group=${group} --user=nginx --group=nginx --w
 # -----------Проверка аргументов,---------------
 # ------определение необходимых пакетов---------
 # ----------------------------------------------
+command_list=false
+git_need=""
+gcc_need=""
+zlib_need=""
+pcre_need=""
+
+openssl_need=""
+nginx_need=""
+csp_need=""
+csp=""
 
 # Проверка аргументов и CSP
-for arg_cur in ${ARGV};
+for arg_cur in "${ARGV[@]}"
 do
-    term="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $1}'`"
-    define="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $2}'`"
-    case ${term} in
-        # Проверка CSP
-        "--csp")
-            csp_need=true
-            csp=${define}
-            ;;
-    esac
+    term="$(echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $1}')"
+    define="$(echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $2}')"
+    if test "${term}" != ""
+    then
+        case ${term} in
+            # Проверка CSP
+            "--csp")
+                csp=${define}
+                ;;
+            "--install")
+                # git
+                if test "${define}" == "git"
+                then
+                    git_need=true
+                    
+                # gcc
+                elif test "${define}" == "gcc"
+                then
+                    gcc_need=true
+
+                # zlib
+                elif test "${define}" == "zlib"
+                then
+                    zlib_need=true
+
+                # pcre
+                elif test "${define}" == "pcre"
+                then
+                    pcre_need=true
+
+                # csp
+                elif test "${define}" == "csp"
+                then
+                    csp_need=true
+
+                # openssl
+                elif test "${define}" == "openssl"
+                then
+                    openssl_need=true
+
+                # nginx
+                elif test "${define}" == "nginx"
+                then
+                    nginx_need=true
+                
+                else
+                    echo "Bad value for \"${term}\": ${define}"
+                    exit 1
+                fi
+                ;;
+            "--noinstall")
+                # git
+                if test "${define}" == "git"
+                then
+                    git_need=false
+                    
+                # gcc
+                elif test "${define}" == "gcc"
+                then
+                    gcc_need=false
+
+                # zlib
+                elif test "${define}" == "zlib"
+                then
+                    zlib_need=false
+
+                # pcre
+                elif test "${define}" == "pcre"
+                then
+                    pcre_need=false
+                
+                else
+                    echo "Bad value for \"${term}\": ${define}"
+                    exit 1
+                fi
+                ;;
+            *)
+                echo "Bad arg: ${term}"
+                exit 1
+                ;;
+        esac
 
     # Проверка command list
-    if echo ${arg_cur}|grep "\-\-command_list" > /dev/null
+    elif echo "${arg_cur}" | grep "\-\-command_list" > /dev/null
     then
         command_list=true
-    fi
-    # Проверка force install
-    if echo ${arg_cur}|grep "\-\-force_install" > /dev/null
+
+    # Вывод справки
+    elif echo "${arg_cur}" | grep "\-\-help" > /dev/null
     then
-        openssl_need=true
-        nginx_need=true
+        echo "Usage: ./install-nginx.sh <option>"
+        echo ""
+        echo "Option:"
+        echo "--help                       Print this help."
+        echo "--command_list               Print all commands to a file \"command_list.txt\""
+        echo "                             without executing them."
+        echo "--noinstall=[pkg]            Ignore check and skip install package."
+        echo "                             Pkg: gcc, git, pcre, zlib."
+        echo "--install=[pkg]              Force install package."
+        echo "                             Pkg: gcc, git, pcre, zlib"
+        echo "                                  csp, openssl, nginx."
+        exit 0
+
+    # Не верные аргументы
+    else
+        echo "Bad arg: ${arg_cur}"
+        exit 1 
     fi
 done
 
-if [ ${csp_need} == false ] 
+if test "${csp_need}" == ""
 then
     if (eval "${pkglist} | grep cprocsp-base > /dev/null" && \
         eval "${pkglist} | grep cprocsp-capilite > /dev/null" && \
@@ -134,66 +223,158 @@ then
         eval "${pkglist} | grep cprocsp-kc2 > /dev/null")
     then
         echo "CSP: found"
+        csp_need=false
     else
-        printf "CSP: not full installed. No argument --csp=[CSP_TGZ/CSP_DIR]\n"
-        exit 0
+        echo "CSP: not full installed"
+        if test "${csp}" == ""
+        then
+            printf "No argument --csp=[CSP_TGZ/CSP_DIR]\n"
+            exit 0
+        fi
+        csp_need=true
+    fi
+else
+    if test ${csp_need} == true
+    then
+        echo "CSP: force install"
+        if test "${csp}" == ""
+        then
+            printf "No argument --csp=[CSP_TGZ/CSP_DIR]\n"
+            exit 0
+        fi
+    else
+        echo "CSP: force noinstall"
     fi
 fi
 # ----------------------------------------------
 
 # Проверка GCC
-eval "$pkglist | grep -qw gcc > /dev/null"
-if ! [ "$?" -eq 0 ]
+if test "${gcc_need}" == ""
 then
-    gcc_need=true
+    eval "$pkglist | grep -qw gcc > /dev/null"
+    if ! test "$?" -eq 0
+    then
+        echo "GCC: not found (will be installed)"
+        gcc_need=true
+    else
+        echo "GCC: found"
+        gcc_need=false
+    fi
 else
-    echo "GCC: found"
+    if test ${gcc_need} == true
+    then
+        echo "GCC: force install"
+    else
+        echo "GCC: force noinstall"
+    fi
 fi
 # ----------------------------------------------
 
 # Проверка GIT
-eval "$pkglist | grep \" git \" > /dev/null"
-if ! [ "$?" -eq 0 ]
+if test "${git_need}" == ""
 then
-    git_need=true
+    eval "$pkglist | grep \" git \" > /dev/null"
+    if ! test "$?" -eq 0
+    then
+        echo "GIT: not found (will be installed)"
+        git_need=true
+    else
+        echo "GIT: found"
+        git_need=false
+    fi
 else
-    echo "GIT: found"
+    if test ${git_need} == true
+    then
+        echo "GIT: force install"
+    else
+        echo "GIT: force noinstall"
+    fi
 fi
 # ----------------------------------------------
 
-# Проверка openssl
-if (eval "${pkglist} | grep cpopenssl-110-64 > /dev/null" && \
-    eval "${pkglist} | grep cpopenssl-110-base > /dev/null" && \
-    eval "${pkglist} | grep cpopenssl-110-devel > /dev/null" &&
-    eval "${pkglist} | grep cpopenssl-110-gost-64 > /dev/null")
+# Проверка Openssl-1.1.0
+if test "${openssl_need}" == ""
 then
-    echo "Openssl-1.1.0: found"
+    if (eval "${pkglist} | grep cpopenssl-110-64 > /dev/null" && \
+        eval "${pkglist} | grep cpopenssl-110-base > /dev/null" && \
+        eval "${pkglist} | grep cpopenssl-110-devel > /dev/null" &&
+        eval "${pkglist} | grep cpopenssl-110-gost-64 > /dev/null")
+    then
+        echo "Openssl-1.1.0: found"
+        openssl_need=false
+    else
+        echo "Openssl-1.1.0: not found (will be installed)"
+        openssl_need=true
+    fi
 else
-    openssl_need=true
+    if test ${openssl_need} == true
+    then
+        echo "Openssl-1.1.0: force install"
+    else
+        echo "Openssl-1.1.0: force noinstall"
+    fi
 fi
 # ----------------------------------------------
 
 # Проверка PCRE
-if ! test -e "/usr/local/bin/pcre-config"
+if test "${pcre_need}" == ""
 then
-    pcre_need=true
+    if ! test -e "/usr/local/bin/pcre-config"
+    then
+        echo "PCRE: not found (will be installed)"
+        pcre_need=true
+    else
+        echo "PCRE: found"
+        pcre_need=false
+    fi
 else
-    echo "PCRE: found"
+    if test ${pcre_need} == true
+    then
+        echo "PCRE: force install"
+    else
+        echo "PCRE: force noinstall"
+    fi
 fi
 # ----------------------------------------------
 
 # Проверка ZLIB
-if ! test -e "/usr/local/lib/libz.so.1.2.11"
+if test "${zlib_need}" == ""
 then
-    zlib_need=true
+    if ! test -e "/usr/local/lib/libz.so.1.2.11"
+    then
+        echo "ZLIB: not found (will be installed)"
+        zlib_need=true
+    else
+        echo "ZLIB: found"
+        zlib_need=false
+    fi
 else
-    echo "ZLIB: found"
+    if test ${zlib_need} == true
+    then
+        echo "ZLIB: force install"
+    else
+        echo "ZLIB: force noinstall"
+    fi
 fi
 
-# Провекра NGINX
-if ! test -e "/usr/sbin/nginx"
+# Провекра Nginx
+if test "${nginx_need}" == ""
 then
-    nginx_need=true
+    if ! test -e "/usr/sbin/nginx"
+    then
+        echo "Nginx: not found (will be installed)"
+        nginx_need=true
+    else
+        echo "Nginx: found"
+        nginx_need=false
+    fi
+else
+    if test ${nginx_need} == true
+    then
+        echo "Nginx: force install"
+    else
+        echo "Nginx: force noinstall"
+    fi
 fi
 # ----------------------------------------------
 
@@ -212,216 +393,148 @@ fi
 
 
 
-
-
-# ----------------------------------------------
-# ----------Вывод команд в файл-----------------
-# ----------------------------------------------
-if [ ${command_list} == true ];
-then
-    echo "Create command_list"
-    printf "Command list:\n------------------------------\n\n" > command_list
-
-    printf "wget --no-check-certificate -O nginx_conf.patch https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch\n\n" >> command_list
-    printf "wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz &&\n" >> command_list
-    printf "wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz\n\n" >> command_list
-
-    for openssl_pkg in ${openssl_packages[@]}; 
-    do 
-        printf "wget --no-check-certificate -O $openssl_pkg ${url}/bin/${revision_openssl}/$openssl_pkg\n" >> command_list
-    done
-    printf "\ntar -xzvf ${pcre_ver}.tar.gz &&\n" >> command_list
-    printf "tar -xzvf ${zlib_ver}.tar.gz\n\n" >> command_list
-    if ! [ -d "$csp" ]
+# Если мод command_list, то просто печатаем команды в файл,
+# иначе - исполняем
+function _exec {
+    if [ ${command_list} == true ];
     then
-        if ! [ -d csp ]
-        then
-            printf "mkdir csp\n" >> command_list
-        fi
-        printf "tar -xzvf $csp -C csp --strip-components 1\n\n" >> command_list
-        csp="csp"
+        printf "%s" "$1\n" >> command_list.txt
+    else
+        eval "$1" || exit 1
     fi
-    printf "git clone https://github.com/nginx/nginx.git\n" >> command_list
-    printf "cd nginx &&\n" >> command_list
-    printf "git checkout branches/$nginx_branch\n\n" >> command_list
+}
 
-    if [ ${gcc_need} == true ];
+# Если мод command_list, то ничего не выводим
+function _echo {
+    if [ ${command_list} == false ];
     then
-        printf "$apt install gcc\n" >> command_list
+        echo "$1"
     fi
-
-    if [ ${git_need} == true ];
-    then
-        printf "$apt install git\n\n" >> command_list
-    fi
-
-    if [ ${csp_need} == true ];
-    then
-        cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
-        printf "cd ${csp} && ./install.sh && $cmd && cd ${WORK_PATH}\n" >> command_list
-    fi
-
-    if [ ${pcre_need} == true ];
-    then
-        printf "cd ${pcre_ver} && ./configure && make && make install && cd cd ${WORK_PATH}\n" >> command_list
-    fi
-
-    if [ ${zlib_need} == true ];
-    then
-        printf "${zlib_ver} && ./configure && make && make install && cd cd ${WORK_PATH}\n\n" >> command_list
-    fi
-
-    if [ ${openssl_need} == true ];
-    then
-        for openssl_pkg in ${openssl_packages[@]}; do
-            cmd=$install" "$openssl_pkg
-            printf "$cmd\n" >> command_list
-        done
-    fi
-
-    cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
-    printf "\ncd ${WORK_PATH} && git apply nginx_conf.patch\n" >> command_list
-    printf "cd nginx &&\n" >> command_list
-    printf "$cmd &&\n" >> command_list
-    printf "make && make install\n" >> command_list
-    if ! [ -d /var/cache/nginx ]
-    then
-        printf "mkdir /var/cache/nginx" >> command_list
-    fi
-
-    exit 0
-fi
-# ----------------------------------------------
-# ----------------------------------------------
-# ----------------------------------------------
-
-
-
-
-
-
-
-
-
+}
 
 # Загрузка и распаковка пакетов
 # Пакеты загружаются все возможные (не имеет значения нужны они или нет)
 if ! [ -e "nginx_conf.patch" ]
 then
-    eval "wget --no-check-certificate -O nginx_conf.patch https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch" || exit 1
+    _exec "wget --no-check-certificate -O nginx_conf.patch https://raw.githubusercontent.com/fullincome/scripts/master/nginx-gost/nginx_conf.patch"
 fi
 
 if ! [ -e "${pcre_ver}.tar.gz" ]
 then
-    eval "wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz" || exit 1
+    _exec "wget --no-check-certificate -O ${pcre_ver}.tar.gz ${url}/src/${pcre_ver}.tar.gz"
 fi
 
 if ! [ -e "${zlib_ver}.tar.gz" ]
 then
-    eval "wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz" || exit 1
+    _exec "wget --no-check-certificate -O ${zlib_ver}.tar.gz ${url}/src/${zlib_ver}.tar.gz"
 fi
 
-for openssl_pkg in ${openssl_packages[@]}; 
+for openssl_pkg in "${openssl_packages[@]}"; 
 do 
     if ! [ -e "$openssl_pkg" ]
     then
-        eval "wget --no-check-certificate -O $openssl_pkg ${url}/bin/${revision_openssl}/$openssl_pkg" || exit 1; 
+        _exec "wget --no-check-certificate -O $openssl_pkg ${url}/bin/${revision_openssl}/$openssl_pkg"
     fi
 done
 
 if ! [ -d "$pcre_ver" ]
 then
-    eval "tar -xzvf ${pcre_ver}.tar.gz" || exit 1
+    _exec "tar -xzvf ${pcre_ver}.tar.gz"
 fi
 
 if ! [ -d "$zlib_ver" ]
 then
-    eval "tar -xzvf ${zlib_ver}.tar.gz" || exit 1
+    _exec "tar -xzvf ${zlib_ver}.tar.gz"
 fi
 
 if (! test -d "$csp" && test "$csp_need" == "true")
 then
     if ! [ -d csp ]
     then
-        mkdir csp
+        _exec "mkdir csp"
     fi
-    tar -xzvf $csp -C csp --strip-components 1 || exit 1
+    _exec "tar -xzvf $csp -C csp --strip-components 1"
     csp="csp"
 fi
 
-if ! [ -d "nginx" ]
-then
-    echo "Clone nginx repository"
-    git clone https://github.com/nginx/nginx.git || exit 1
-    cd nginx || exit 1
-    echo "Switch branch"
-    git checkout branches/$nginx_branch || exit 1
-fi
-cd ${WORK_PATH}
 # ----------------------------------
 
 # Инсталяция пакетов
 # Инсталируются только необходимые пакеты, которые не нашлись в системе
 if [ ${gcc_need} == true ];
 then
-    echo "Install gcc"
-    eval "$apt install gcc" || exit 1
+    _echo "Install gcc"
+    _exec "$apt install gcc"
 fi
 
 if [ ${git_need} == true ];
 then
-    echo "Install git"
-    eval "$apt install git" || exit 1
+    _echo "Install git"
+    _exec "$apt install git"
 fi
 
 if [ ${csp_need} == true ];
 then
-    echo "Install CSP"
+    _echo "Install CSP"
     cmd=$install" lsb-cprocsp-kc2*"${pkgmsys}
-    cd ${csp} && ./install.sh && eval "$cmd" && cd ${WORK_PATH} || exit 1
+    _exec "cd ${csp} && ./install.sh && eval ${cmd} && cd ${WORK_PATH}"
 fi
 
 if [ ${pcre_need} == true ];
 then
-    echo "Install PCRE"
-    cd ${pcre_ver} && ./configure && make && make install && cd ${WORK_PATH} || exit 1
+    _echo "Install PCRE"
+    _exec "cd ${pcre_ver} && ./configure && make && make install && cd ${WORK_PATH}"
 fi
 
 if [ ${zlib_need} == true ];
 then
-    echo "Install ZLIB" 
-    cd ${zlib_ver} && ./configure && make && make install && cd ${WORK_PATH} || exit 1
+    _echo "Install ZLIB" 
+    _exec "cd ${zlib_ver} && ./configure && make && make install && cd ${WORK_PATH}"
 fi
 
 if [ ${openssl_need} == true ];
 then
-    echo "Install Openssl-1.1.0"
-    for openssl_pkg in ${openssl_packages[@]}; do
+    _echo "Install Openssl-1.1.0"
+    for openssl_pkg in "${openssl_packages[@]}"; do
         cmd=$install" "$openssl_pkg
-        eval "$cmd" || exit 1
+        _exec "eval ${cmd}"
     done
 fi
 
 # ----------------------------------
 
 # Установка nginx
+if ! [ -d "nginx" ]
+then
+    _echo "Clone nginx repository"
+    _exec "git clone https://github.com/nginx/nginx.git"
+    _exec "cd nginx"
+    _echo "Switch branch"
+    _exec "git checkout branches/${nginx_branch}"
+fi
+cd "${WORK_PATH}"
+
 if [ ${nginx_need} == true ];
 then
-    echo "Apply patch"
-    cd ${WORK_PATH} && cp nginx_conf.patch ./nginx/nginx_conf.patch  || exit 1
-    cd nginx && git apply nginx_conf.patch || exit 1
+    _echo "Apply patch"
+    _exec "cd ${WORK_PATH} && cp nginx_conf.patch ./nginx/nginx_conf.patch"
+    _exec "cd nginx && git apply nginx_conf.patch"
     
     cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
-    echo "Nginx: configure and install"
-    eval $cmd && make && make install || exit 1
-    echo "NGINX: installed"
+    _echo "Nginx: configure and install"
+    _exec "${cmd} && make && make install"
+    _echo "Nginx: installed"
 else
-    echo "NGINX: installed"
+    if test -e "/usr/sbin/nginx"
+    then
+        _echo ""
+        _echo "Nginx already installed."
+    fi
 fi
 
 if ! [ -d /var/cache/nginx ]
 then
-    mkdir /var/cache/nginx
+    _exec "mkdir /var/cache/nginx"
 fi
-cd ${WORK_PATH}
+cd "${WORK_PATH}"
 # ----------------------------------
