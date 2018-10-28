@@ -198,14 +198,15 @@ do
         echo "Usage: ./install-nginx.sh <option>"
         echo ""
         echo "Option:"
-        echo "--help                       Print this help."
         echo "--command_list               Print all commands to a file \"command_list.txt\""
         echo "                             without executing them."
+        echo "--csp=[csp]                  Path to CSP (tgz or dir)."
         echo "--noinstall=[pkg]            Ignore check and skip install package."
         echo "                             Pkg: gcc, git, pcre, zlib."
         echo "--install=[pkg]              Force install package."
         echo "                             Pkg: gcc, git, pcre, zlib"
         echo "                                  csp, openssl, nginx."
+        echo "--help                       Print this help."
         exit 0
 
     # Не верные аргументы
