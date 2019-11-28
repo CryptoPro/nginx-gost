@@ -10,9 +10,6 @@ os:
 compiler:
 - gcc
 
-before install:
-- sudo apt-get -qq update
-
 env:
   - ARCH_DIST='linux-amd64'
 
@@ -27,9 +24,9 @@ addons:
 install:
 - wget https://$ACCOUNT@update.cryptopro.ru/support/stunnel/mydsrf &&
   wget https://$ACCOUNT@update.cryptopro.ru/support/stunnel/dist/csp50/${ARCH_DIST}_deb.tgz &&
-  tar -xvf ${ARCH_DIST}_deb.tgz;
+  tar -xvf ${ARCH_DIST}_deb.tgz
 
 script:
-  - ./nginx-gost/install-nginx.sh --csp=${ARCH_DIST}_deb
-  - ./prepare_silent_mod.sh
-  - ./nginx-gost/install-certs.sh --silent
+  - sudo ./nginx-gost/install-nginx.sh --csp=${ARCH_DIST}_deb &&
+  sudo ./prepare_silent_mod.sh &&
+  sudo ./nginx-gost/install-certs.sh --silent
