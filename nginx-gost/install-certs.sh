@@ -1,6 +1,7 @@
 #!/bin/bash -x 
 
 ARGV=$@
+mod=""
 certname='srvtest'
 container='ngxtest'
 provtype='81' #75, 80, 81
@@ -21,6 +22,11 @@ for arg_cur in ${ARGV};
 do
     term="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $1}'`"
     define="`echo ${arg_cur}|awk -F= '/^\-\-.+=.+/{print $2}'`"
+
+    if test "$term" == ""; then
+        term="`echo ${arg_cur}|awk '/^\-\-.+/{print $1}'`"
+    fi
+
     case ${term} in
         # Указание имени сертификата
         "--certname")
@@ -29,29 +35,32 @@ do
         "--container")
             container=${define}
             ;;
+        "--silent")
+            mod="-silent -enable-install-root"
+            ;;
     esac
 done
 
-/opt/cprocsp/bin/amd64/certmgr -list | grep "CN=${certname}"
+/opt/cprocsp/bin/amd64/certmgr -list -store mMy | grep "CN=${certname}"
 if [ $? -eq 0 ]
 then
-    /opt/cprocsp/bin/amd64/certmgr -delete -dn CN=${certname}
+    /opt/cprocsp/bin/amd64/certmgr -delete -store mMy -dn CN=${certname}
 fi
 
-/opt/cprocsp/bin/amd64/csptest -enum -info -type PP_ENUMCONTAINERS | grep "${container}"
+/opt/cprocsp/bin/amd64/csptest -enum -info -machine -type PP_ENUMCONTAINERS | grep "${container}"
 if [ $? -eq 0 ]
 then
-    /opt/cprocsp/bin/amd64/certmgr -delete -cont "\\\\.\\HDIMAGE\\${container}"
+    /opt/cprocsp/bin/amd64/csptest -keyset -deletekeyset -provtype ${provtype} -machinekeyset -container ${container}
 fi
 
 # Генерация тестового сертефиката:
-/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -ku -du -ex -ca http://cryptopro.ru/certsrv || exit 1
+/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" ${mod} -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -km -dm -ex -ca http://cryptopro.ru/certsrv || exit 1
 
 # Смена KC1 на KC2 в имени провайдера, так как nginx работает с провайдером KC2:
-/opt/cprocsp/bin/amd64/certmgr -inst -store uMy -cont "\\\\.\\HDIMAGE\\${container}" -provtype ${provtype} -provname "${provnameKC2}" || exit 1
+/opt/cprocsp/bin/amd64/certmgr -inst -store mMy -cont "\\\\.\\HDIMAGE\\${container}" -provtype ${provtype} -provname "${provnameKC2}" || exit 1
 
 # Экспорт сертификата:
-/opt/cprocsp/bin/amd64/certmgr -export -cert -dn "CN=${certname}" -dest "/etc/nginx/${certname}.cer" || exit 1
+/opt/cprocsp/bin/amd64/certmgr -export -store mMy -cert -dn "CN=${certname}" -dest "/etc/nginx/${certname}.cer" || exit 1
 
 # Смена кодировкии сертификата DER на PEM:
 openssl x509 -inform DER -in "/etc/nginx/${certname}.cer" -out "/etc/nginx/${certname}.pem" || exit 1
