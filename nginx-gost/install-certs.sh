@@ -1,6 +1,7 @@
 #!/bin/bash -x 
 
 ARGV=$@
+install_root=0
 mod=""
 certname='srvtest'
 container='ngxtest'
@@ -36,7 +37,8 @@ do
             container=${define}
             ;;
         "--silent")
-            mod="-silent -enable-install-root"
+            install_root=1
+            mod="-silent"
             ;;
     esac
 done
@@ -44,23 +46,30 @@ done
 /opt/cprocsp/bin/amd64/certmgr -list -store mMy | grep "CN=${certname}"
 if [ $? -eq 0 ]
 then
-    /opt/cprocsp/bin/amd64/certmgr -delete -store mMy -dn CN=${certname}
+    /opt/cprocsp/bin/amd64/certmgr -delete -store uMy -dn CN=${certname}
 fi
 
-/opt/cprocsp/bin/amd64/csptest -enum -info -machine -type PP_ENUMCONTAINERS | grep "${container}"
+/opt/cprocsp/bin/amd64/csptest -enum -info -type PP_ENUMCONTAINERS | grep "${container}"
 if [ $? -eq 0 ]
 then
-    /opt/cprocsp/bin/amd64/csptest -keyset -deletekeyset -provtype ${provtype} -machinekeyset -container ${container}
+    /opt/cprocsp/bin/amd64/csptest -keyset -deletekeyset -provtype ${provtype} -container ${container}
+fi
+
+if [ $install_root -eq 1 ]
+then
+    # Установка root-сертификата
+    wget --no-check-certificate -O test_ca_root.cer "https://cryptopro.ru/certsrv/certnew.cer?ReqID=CACert&Renewal=1&Enc=bin"
+    /opt/cprocsp/bin/amd64/certmgr -install -file test_ca_root.cer -store mroot -silent
 fi
 
 # Генерация тестового сертефиката:
-/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" ${mod} -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -km -dm -ex -ca http://cryptopro.ru/certsrv || exit 1
+/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" ${mod} -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -ku -du -ex -ca http://cryptopro.ru/certsrv || exit 1
 
 # Смена KC1 на KC2 в имени провайдера, так как nginx работает с провайдером KC2:
-/opt/cprocsp/bin/amd64/certmgr -inst -store mMy -cont "\\\\.\\HDIMAGE\\${container}" -provtype ${provtype} -provname "${provnameKC2}" || exit 1
+/opt/cprocsp/bin/amd64/certmgr -inst -store uMy -cont "\\\\.\\HDIMAGE\\${container}" -provtype ${provtype} -provname "${provnameKC2}" || exit 1
 
 # Экспорт сертификата:
-/opt/cprocsp/bin/amd64/certmgr -export -store mMy -cert -dn "CN=${certname}" -dest "/etc/nginx/${certname}.cer" || exit 1
+/opt/cprocsp/bin/amd64/certmgr -export -store uMy -cert -dn "CN=${certname}" -dest "/etc/nginx/${certname}.cer" || exit 1
 
 # Смена кодировкии сертификата DER на PEM:
 openssl x509 -inform DER -in "/etc/nginx/${certname}.cer" -out "/etc/nginx/${certname}.pem" || exit 1
