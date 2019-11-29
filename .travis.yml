@@ -30,5 +30,5 @@ script:
   - sudo ./nginx-gost/install-nginx.sh --csp=${ARCH_DIST}_deb &&
     sudo ./prepare_silent_mod.sh &&
     sudo ./nginx-gost/install-certs.sh --silent &&
-    nginx &&
-    ./test_nginx.sh
+    sudo nginx &&
+    sudo ./test_nginx.sh
