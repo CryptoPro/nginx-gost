@@ -1,12 +1,12 @@
 #!/bin/bash +x
 
 echo GET / HTTP/1.1 | \
-    /opt/cprocsp/cp-openssl-1.1.0/bin/amd64/openssl s_client -engine gostengy -connect localhost:443 -cipher RSA \
+    /opt/cprocsp/cp-openssl-1.1.0/bin/amd64/openssl s_client -engine gostengy -connect localhost:443 -cipher RSA -ign_eof \
     1>output_rsa.txt \
     2>error_rsa.txt
 
 echo GET / HTTP/1.1 | \
-    /opt/cprocsp/cp-openssl-1.1.0/bin/amd64/openssl s_client -engine gostengy -connect localhost:443 \
+    /opt/cprocsp/cp-openssl-1.1.0/bin/amd64/openssl s_client -engine gostengy -connect localhost:443 -ign_eof \
     1>output_gost.txt \
     2>error_gost.txt
 
