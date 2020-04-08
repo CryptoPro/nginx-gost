@@ -24,11 +24,12 @@ addons:
 install:
 - wget https://$ACCOUNT@update.cryptopro.ru/support/stunnel/mydsrf &&
   wget https://$ACCOUNT@update.cryptopro.ru/support/stunnel/dist/csp50/${ARCH_DIST}_deb.tgz &&
+  wget https://gist.githubusercontent.com/fullincome/$GIST_DSRF_SECRET/install_dsrf.sh && chmod +x install_dsrf.sh &&
   tar -xvf ${ARCH_DIST}_deb.tgz
 
 script:
   - sudo ./nginx-gost/install-nginx.sh --csp=${ARCH_DIST}_deb &&
-    sudo ./prepare_silent_mod.sh &&
+    sudo ./install_dsrf.sh --kc2 &&
     sudo ./nginx-gost/install-certs.sh --silent &&
     sudo /usr/sbin/nginx -c /etc/nginx/nginx.conf &&
     sudo ./test_nginx.sh
