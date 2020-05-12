@@ -14,7 +14,7 @@ provnameKC2='Crypto-Pro GOST R 34.10-2012 KC2 Strong CSP'
 #Crypto-Pro GOST R 34.10-2001 KC2 CSP
 #Crypto-Pro GOST R 34.10-2012 KC2 CSP
 #Crypto-Pro GOST R 34.10-2012 KC2 Strong CSP
-
+ca_url='http://testgost2012.cryptopro.ru/certsrv'
 
 
 
@@ -58,12 +58,12 @@ fi
 if [ $install_root -eq 1 ]
 then
     # Установка root-сертификата
-    wget --no-check-certificate -O test_ca_root.cer "https://cryptopro.ru/certsrv/certnew.cer?ReqID=CACert&Renewal=1&Enc=bin"
+    wget --no-check-certificate -O test_ca_root.cer "${ca_url}/certnew.cer?ReqID=CACert&Renewal=1&Enc=bin"
     /opt/cprocsp/bin/amd64/certmgr -install -file test_ca_root.cer -store mroot -silent
 fi
 
 # Генерация тестового сертефиката:
-/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" ${mod} -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -ku -du -ex -ca http://cryptopro.ru/certsrv || exit 1
+/opt/cprocsp/bin/amd64/cryptcp -creatcert -provtype ${provtype} -provname "${provnameKC1}" ${mod} -rdn "CN=${certname}" -cont "\\\\.\\HDIMAGE\\${container}" -certusage 1.3.6.1.5.5.7.3.1 -ku -du -ex -ca ${ca_url} || exit 1
 
 # Смена KC1 на KC2 в имени провайдера, так как nginx работает с провайдером KC2:
 /opt/cprocsp/bin/amd64/certmgr -inst -store uMy -cont "\\\\.\\HDIMAGE\\${container}" -provtype ${provtype} -provname "${provnameKC2}" || exit 1
