@@ -6,8 +6,8 @@ WORK_PATH=$(pwd)
 # Пакеты будут скачены с "$url"
 url="https://update.cryptopro.ru/support/nginx-gost"
 
-revision_openssl="185515"
-release_openssl="5.0.11315-5"
+revision_openssl="211453"
+release_openssl="5.0.11803-6"
 pcre_ver="pcre-8.44"
 zlib_ver="zlib-1.2.11"
 
