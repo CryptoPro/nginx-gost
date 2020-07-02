@@ -12,7 +12,7 @@ pcre_ver="pcre-8.44"
 zlib_ver="zlib-1.2.11"
 
 # Версия nginx для загрузки с github
-nginx_branch="stable-1.14"
+nginx_branch="stable-1.16"
 
 # Определение команд под систему
 cat /etc/*release* | grep -Ei "(centos|red hat)" > /dev/null
