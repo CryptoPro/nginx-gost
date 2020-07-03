@@ -1,6 +1,9 @@
+[![Build Status](https://travis-ci.org/fullincome/nginx-gost.svg?branch=master)](https://travis-ci.org/fullincome/nginx-gost)
 # Nginx-gost
 Скрипты для установки nginx с поддержкой GOST и RSA cipher suites (nginx + openssl gostengy + cryptopro csp).  
-Инструкция по установке и обсуждение на форуме: https://www.cryptopro.ru/forum2/default.aspx?g=posts&t=12505
+  
+Инструкция по установке и обсуждение на форуме:  
+https://www.cryptopro.ru/forum2/default.aspx?g=posts&t=12505
 
 ## Usage
 Самый простой путь для инсталяции nginx:
