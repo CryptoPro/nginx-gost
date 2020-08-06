@@ -399,7 +399,7 @@ fi
 function _exec {
     if [ ${command_list} == true ];
     then
-        printf "%s" "$1\n" >> command_list.txt
+        printf "%s\n" "$1" >> command_list.txt
     else
         eval "$1" || exit 1
     fi
