@@ -43,7 +43,7 @@ do
     esac
 done
 
-/opt/cprocsp/bin/amd64/certmgr -list -store mMy | grep "CN=${certname}"
+/opt/cprocsp/bin/amd64/certmgr -list -store uMy | grep "CN=${certname}"
 if [ $? -eq 0 ]
 then
     /opt/cprocsp/bin/amd64/certmgr -delete -store uMy -dn CN=${certname}
