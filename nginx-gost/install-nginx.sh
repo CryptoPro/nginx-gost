@@ -519,7 +519,14 @@ if [ ${nginx_need} == true ];
 then
     _echo "Apply patch"
     _exec "cd ${WORK_PATH} && cp nginx_conf.patch ./nginx/nginx_conf.patch"
-    _exec "cd nginx && git apply nginx_conf.patch"
+    _exec "cd nginx"
+
+    # Check if the patch has already been applied
+    cat auto/lib/openssl/conf | grep "CryptoPro port" > /dev/null
+    if [ "$?" -ne 0 ]
+    then
+        _exec "git apply nginx_conf.patch"
+    fi
     
     cmd="./auto/configure${nginx_paths}${nginx_parametrs}${cc_ld_opt}"
     _echo "Nginx: configure and install"
